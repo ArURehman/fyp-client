@@ -3,3 +3,4 @@ __pycache__
 
 deraining_weights.pth
 recognition_weights.pth
+detector.pt
