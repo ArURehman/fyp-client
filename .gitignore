@@ -1,2 +1,5 @@
 fyp-env
 __pycache__
+
+deraining_weights.pth
+recognition_weights.pth
