@@ -14,6 +14,7 @@ class App:
         self.detector = Detector(device)
         self.derainer = Derainer(device)
         self.recognizer = Recognizer(device)
+        self.iframe, self.og_iframe = None, None
         
     def preprocess(self, frame):
         og_frame = frame.copy()
@@ -64,32 +65,34 @@ class App:
         for i, cropped in enumerate(cropped_images):
             result = self.recognizer(cropped, cv2.imread("image.jpg"))
             st.write(f"Recognition Result for Face {i + 1}: {result}")
+            
+    def save_image(self, frame):
+        cv2.imwrite("image.jpg", frame)
+        st.write("Image Saved")
+        
+    def recognize_image(self, frame):
+        if not os.path.exists("image.jpg"):
+            st.write("No image to recognize. Please save an image first.")
+            return
+        st.write("Recognizing...")
+        st.session_state.enable_camera = False
+        self.recognize(frame)
+        st.session_state.enable_camera = True
     
     def __call__(self):
         st.title("Facial Recognition App")
         run = st.checkbox("Enable Camera", key="enable_camera")
         FRAME_WINDOW = st.image([], use_container_width=True)
         left_column, right_column = st.columns(2)
-        save_btn = left_column.button("Upload", use_container_width=True, key="save_btn")
-        recognize_btn = right_column.button("Recognize", use_container_width=True, key="recognize_btn")
+        save_btn = left_column.button("Upload", use_container_width=True, key="save_btn", on_click=lambda: self.save_image(self.iframe))
+        recognize_btn = right_column.button("Recognize", use_container_width=True, key="recognize_btn", on_click=lambda: self.recognize_image(self.og_iframe))
         camera = cv2.VideoCapture(0)
         while run:
-            ret, frame = camera.read()
+            ret, self.iframe = camera.read()
             if ret:
-                og_frame, frame = self.preprocess(frame)
-                frame = cv2.resize(frame, (800, 600))
-                FRAME_WINDOW.image(frame)
-                if save_btn:
-                    cv2.imwrite("image.jpg", frame)
-                    st.write("Image Saved")
-                if recognize_btn:
-                    if not os.path.exists("image.jpg"):
-                        st.write("No image to recognize. Please save an image first.")
-                        continue
-                    st.write("Recognizing...")
-                    st.session_state.enable_camera = False
-                    self.recognize(og_frame)
-                    st.session_state.enable_camera = True
+                self.og_iframe, self.iframe = self.preprocess(self.iframe)
+                self.iframe = cv2.resize(self.iframe, (800, 600))
+                FRAME_WINDOW.image(self.iframe)
             else:
                 st.write("Camera Stopped")
         camera.release()

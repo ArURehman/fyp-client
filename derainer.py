@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
@@ -5,11 +6,11 @@ from generator import Generator
 
 class Derainer(nn.Module):
     
-    def __init__(self, device):
+    def __init__(self, device="cpu"):
         super(Derainer, self).__init__()
-        self.generator = Generator().to(device)
-        checkpoint = torch.load('deraining_weights.pth')
-        self.generator.load_state_dict(checkpoint['model_state_dict'])
+        self.generator = Generator()
+        checkpoint = torch.load('deraining_weights.pth', map_location=device)
+        self.generator.load_state_dict(checkpoint['generator_state_dict'])
         self.generator.eval()
         self.device = device
         self.transform = transforms.Compose([

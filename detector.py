@@ -3,7 +3,7 @@ from ultralytics import YOLO
 
 class Detector:
     
-    def __init__(self, device):
+    def __init__(self, device="cpu"):
         self.yolo = YOLO('detector.pt').to(device)
         self.transform = transforms.Compose([
                 transforms.ToTensor(),
